@@ -1,6 +1,7 @@
 import torch
 import gokart
 import luigi
+import numpy as np
 
 from novelty_enhanced_bpr.data.generate_psudo_data import GeneratePsudoData
 from novelty_enhanced_bpr.data.make_paired_data import MakePairedData
@@ -11,7 +12,7 @@ class TrainModel(gokart.TaskOnKart):
     task_namespace = 'novelty_enhanced_bpr'
 
     distance_threshold: float = luigi.FloatParameter(default=1.0)
-    novelty_weight: float = luigi.FloatParameter(default=0.0)
+    novelty_rate: float = luigi.FloatParameter(default=0.5)
     embedding_dim: int = luigi.IntParameter(default=10)
     lr: float = luigi.FloatParameter(default=0.005)
     weight_decay: float = luigi.FloatParameter(default=0.0001)
@@ -38,10 +39,12 @@ class TrainModel(gokart.TaskOnKart):
 
         model = MatrixFactorization(n_items=n_items, n_users=n_users, embedding_dim=self.embedding_dim)
         optimizer = torch.optim.Adam(model.parameters(), lr=self.lr, weight_decay=self.weight_decay)
-        sampled_data = data_sampler(paired_data)
+        sampled_paried_data = data_sampler(paired_data)
+        sampled_novelty_enhanced_paired_data = data_sampler(novelty_enhanced_paired_data)
 
         training_losses = []
-        for iterations, d in enumerate(sampled_data):
+        for iterations, (d1, d2) in enumerate(zip(sampled_paried_data, sampled_novelty_enhanced_paired_data)):
+            d = d2 if np.random.binomial(1, self.novelty_rate, 1)[0] else d1
             predict = [model(item=d['positive_item_ids'], user=d['user_ids']),
                        model(item=d['negative_item_ids'], user=d['user_ids'])]
             loss = bpr_loss(predict)
