@@ -20,9 +20,9 @@ def data_sampler(data, batch_size=2**11, iterations=1000000):
     for i in range(0, iterations):
         batch = data.sample(batch_size)
         yield dict(
-            user_indices=Variable(torch.FloatTensor(batch['user_index'].values)).long(),
-            clicked_item_indices=Variable(torch.FloatTensor(batch['clicked_item_index'].values)).long(),
-            not_clicked_item_indices=Variable(torch.FloatTensor(batch['not_clicked_item_index'].values)).long()
+            user_ids=Variable(torch.FloatTensor(batch['user_id'].values)).long(),
+            positive_item_ids=Variable(torch.FloatTensor(batch['positive_item_id'].values)).long(),
+            negative_item_ids=Variable(torch.FloatTensor(batch['negative_item_id'].values)).long()
             )
 
 

@@ -95,5 +95,5 @@ class GeneratePsudoData(gokart.TaskOnKart):
 
     def run(self):
         clicks = self.load('user_item_interaction')
-        item_content = self.load('item_distance')
-        self.dump(dict(clicks=clicks, item_content=item_content))
+        item_distance = self.load('item_distance')
+        self.dump(dict(clicks=clicks, item_distance=item_distance))
