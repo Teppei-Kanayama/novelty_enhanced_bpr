@@ -14,7 +14,7 @@ class MakePairedData(gokart.TaskOnKart):
         return self.click_task
 
     def run(self):
-        clicks = self.load()['clicks']
+        clicks = self.load()['clicks_train']
         item_distance = self.load()['item_distance']
         clicked_data = clicks[clicks['click'].astype(bool)].rename(columns={'item_id': 'positive_item_id'})
         not_clicked_data = clicks[~clicks['click'].astype(bool)].rename(columns={'item_id': 'negative_item_id'})

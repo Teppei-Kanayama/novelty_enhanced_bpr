@@ -1,10 +1,12 @@
-import torch
 import gokart
 import luigi
 import numpy as np
+import torch
+from torch.autograd import Variable
 
 from novelty_enhanced_bpr.data.generate_psudo_data import GeneratePsudoData
 from novelty_enhanced_bpr.data.make_paired_data import MakePairedData
+from novelty_enhanced_bpr.evaluation.metrics import recall_at_k, map_at_k
 from novelty_enhanced_bpr.model.matrix_factorization import MatrixFactorization, bpr_loss, data_sampler
 
 
@@ -17,6 +19,8 @@ class TrainModel(gokart.TaskOnKart):
     lr: float = luigi.FloatParameter(default=0.005)
     weight_decay: float = luigi.FloatParameter(default=0.0001)
     max_iter: int = luigi.IntParameter(default=100)
+    n_users: int = luigi.IntParameter()
+    n_items: int = luigi.IntParameter()
 
     def requires(self):
         psudo_data_task = GeneratePsudoData()
@@ -30,14 +34,11 @@ class TrainModel(gokart.TaskOnKart):
                                       load_function=torch.load)
 
     def run(self):
-        data = self.load('data')['clicks']
         paired_data = self.load_data_frame('paired_data', required_columns={'user_id', 'positive_item_id', 'negative_item_id'})
         novelty_enhanced_paired_data = self.load_data_frame('novelty_enhanced_paired_data', required_columns={'user_id', 'positive_item_id', 'negative_item_id'})
+        validation_data = self.load('data')['clicks_validation']
 
-        n_users = data['user_id'].max() + 1
-        n_items = data['item_id'].max() + 1
-
-        model = MatrixFactorization(n_items=n_items, n_users=n_users, embedding_dim=self.embedding_dim)
+        model = MatrixFactorization(n_items=self.n_items, n_users=self.n_users, embedding_dim=self.embedding_dim)
         optimizer = torch.optim.Adam(model.parameters(), lr=self.lr, weight_decay=self.weight_decay)
         sampled_paried_data = data_sampler(paired_data)
         sampled_novelty_enhanced_paired_data = data_sampler(novelty_enhanced_paired_data)
@@ -53,6 +54,20 @@ class TrainModel(gokart.TaskOnKart):
             loss.backward()
             optimizer.step()
 
+            if iterations % 10 == 0:
+                validation_score = validate(model, validation_data)
+                print(f'train loss: {np.array(training_losses).mean()}, '
+                      f'val recall@10: {validation_score["recall"]}, '
+                      f'val map@10: {validation_score["map"]}')
+
             if iterations > self.max_iter:
                 self.dump(model)
                 break
+
+
+def validate(model, data):
+    user_tensor = Variable(torch.FloatTensor(data['user_id'].values)).long()
+    item_tensor = Variable(torch.FloatTensor(data['item_id'].values)).long()
+    scores = model(item=item_tensor, user=user_tensor)
+    data['model_score'] = scores.data.numpy()
+    return dict(recall=recall_at_k(data, k=10), map=map_at_k(data, k=10))

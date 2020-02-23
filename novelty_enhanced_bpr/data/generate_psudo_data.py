@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 from scipy.special import expit
 from scipy.spatial import distance
+from sklearn.model_selection import train_test_split
 
 
 def cross_join(df1, df2):
@@ -85,6 +86,9 @@ class GenerateUserItemInteractions(gokart.TaskOnKart):
 class GeneratePsudoData(gokart.TaskOnKart):
     task_namespace = 'novelty_enhanced_bpr'
 
+    test_size: float = luigi.FloatParameter(default=0.3)
+    validation_size: float = luigi.FloatParameter(default=0.1)
+
     def requires(self):
         item_embed_vector_task = GenerateItemEmbedVectors()
         user_embed_vector_task = GenerateUserEmbedVectors()
@@ -96,4 +100,8 @@ class GeneratePsudoData(gokart.TaskOnKart):
     def run(self):
         clicks = self.load('user_item_interaction')
         item_distance = self.load('item_distance')
-        self.dump(dict(clicks=clicks, item_distance=item_distance))
+
+        clicks_train, clicks_test = train_test_split(clicks, test_size=self.test_size)
+        clicks_train, clicks_validation = train_test_split(clicks_train, test_size=self.validation_size / (1 - self.test_size))
+
+        self.dump(dict(clicks_train=clicks_train, clicks_validation=clicks_validation, clicks_test=clicks_test, item_distance=item_distance))
