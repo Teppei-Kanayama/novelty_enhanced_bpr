@@ -5,7 +5,6 @@ import luigi
 import numpy as np
 import pandas as pd
 from scipy.special import expit
-from scipy.spatial import distance
 from sklearn.model_selection import train_test_split
 
 
@@ -21,12 +20,14 @@ class GenerateItemEmbedVectors(gokart.TaskOnKart):
 
     def run(self):
         item_embed_vector = []
-        for x, y, n in self.mu_list:
+        item_types = []
+        for i, (x, y, n) in enumerate(self.mu_list):
             item_embed_vector.append(np.random.normal(loc=(x, y), scale=(1, 1), size=(n, 2)))
+            item_types.extend([i] * n)
         item_embed_vector = np.concatenate(item_embed_vector)
         n_items = item_embed_vector.shape[0]
         item_ids = np.arange(n_items)
-        df = pd.DataFrame(dict(item_id=item_ids, item_vector=list(item_embed_vector)))
+        df = pd.DataFrame(dict(item_id=item_ids, item_type=item_types, item_vector=list(item_embed_vector)))
         self.dump(df)
 
 
@@ -56,7 +57,7 @@ class GenerateUserEmbedVectors(gokart.TaskOnKart):
 
     def run(self):
         x, y, n = self.user_list
-        user_embed_vector = np.random.normal(loc=(x, y), scale=(3, 3), size=(n, 2))
+        user_embed_vector = np.random.normal(loc=(x, y), scale=(1, 1), size=(n, 2))
         user_ids = np.arange(n)
         df = pd.DataFrame(dict(user_id=user_ids, user_vector=list(user_embed_vector)))
         self.dump(df)
@@ -76,11 +77,11 @@ class GenerateUserItemInteractions(gokart.TaskOnKart):
         df = cross_join(item_embed_vector, user_embed_vector)
 
         def func(item_vector, user_vector):
-            prob = expit(np.linalg.norm(item_vector - user_vector) / 10) - 0.5
+            prob = expit(np.linalg.norm(item_vector - user_vector)) - 0.5
             return np.random.binomial(1, prob, 1)[0]
 
         df['click'] = df.apply(lambda x: func(x['item_vector'], x['user_vector']), axis=1)
-        self.dump(df[['item_id', 'user_id', 'click']])
+        self.dump(df[['item_id', 'item_type', 'user_id', 'click']])
 
 
 class GeneratePsudoData(gokart.TaskOnKart):
