@@ -1,6 +1,7 @@
 import gokart
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 
 from novelty_enhanced_bpr.data.generate_psudo_data import GeneratePsudoData, GenerateItemEmbedVectors, \
     GenerateUserEmbedVectors
@@ -23,9 +24,12 @@ class VisualizePsudoData(gokart.TaskOnKart):
         self.draw_scatter(user_embed['user_vector'].values, 'black', alpha=0.07, size=5)
         plt.savefig('resources/scatter.png')
 
-        ctr = clicks.groupby('item_type', as_index=False).agg({'click': 'mean'}).rename(columns={'click': 'CTR'})
+        sum_clicks = clicks.groupby('item_id', as_index=False).agg({'click': 'sum'}).rename(columns={'click': 'sum_clicks'})
+        clicks = pd.merge(clicks, sum_clicks, on='item_id', how='inner')
+        average_clicks = clicks.groupby('item_type', as_index=False).agg({'sum_clicks': 'mean'}).rename(columns={'sum_clicks': 'average_clicks'})
+
         plt.figure()
-        plt.bar(ctr['item_type'].values, ctr['CTR'].values)
+        plt.bar(average_clicks['item_type'].values, average_clicks['average_clicks'].values)
         plt.savefig('resources/bar.png')
 
         self.dump('this is dummy output')

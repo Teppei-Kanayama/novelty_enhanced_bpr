@@ -21,8 +21,8 @@ class GenerateItemEmbedVectors(gokart.TaskOnKart):
     def run(self):
         item_embed_vector = []
         item_types = []
-        for i, (x, y, n) in enumerate(self.mu_list):
-            item_embed_vector.append(np.random.normal(loc=(x, y), scale=(1, 1), size=(n, 2)))
+        for i, (x, y, s1, s2, n) in enumerate(self.mu_list):
+            item_embed_vector.append(np.random.normal(loc=(x, y), scale=(s1, s2), size=(n, 2)))
             item_types.extend([i] * n)
         item_embed_vector = np.concatenate(item_embed_vector)
         n_items = item_embed_vector.shape[0]
@@ -56,8 +56,8 @@ class GenerateUserEmbedVectors(gokart.TaskOnKart):
     user_list: List = luigi.ListParameter()
 
     def run(self):
-        x, y, n = self.user_list
-        user_embed_vector = np.random.normal(loc=(x, y), scale=(1, 1), size=(n, 2))
+        x, y, s1, s2, n = self.user_list
+        user_embed_vector = np.random.normal(loc=(x, y), scale=(s1, s2), size=(n, 2))
         user_ids = np.arange(n)
         df = pd.DataFrame(dict(user_id=user_ids, user_vector=list(user_embed_vector)))
         self.dump(df)
