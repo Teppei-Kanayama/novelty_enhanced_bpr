@@ -54,9 +54,10 @@ class TrainModel(gokart.TaskOnKart):
             loss.backward()
             optimizer.step()
 
-            if iterations % 1000 == 0:
+            if iterations % 100 == 0:
                 validation_score = validate(model, validation_data)
-                print(f'train loss: {np.array(training_losses).mean()}, '
+                print(f'iteration: {iterations}, '
+                      f'train loss: {np.array(training_losses).mean()}, '
                       f'val recall@10: {validation_score["recall"]}, '
                       f'val map@10: {validation_score["map"]}')
 
@@ -70,4 +71,7 @@ def validate(model, data):
     item_tensor = Variable(torch.FloatTensor(data['item_id'].values)).long()
     scores = model(item=item_tensor, user=user_tensor)
     data['model_score'] = scores.data.numpy()
+
+    data['rank'] = data.groupby('user_id')['model_score'].rank(ascending=False)
+    print(data[data['rank'] <= 3].groupby('item_type').agg({'user_id': 'count'}))
     return dict(recall=recall_at_k(data, k=10), map=map_at_k(data, k=10))
