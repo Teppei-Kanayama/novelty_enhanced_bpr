@@ -22,7 +22,7 @@ class GenerateItemEmbedVectors(gokart.TaskOnKart):
     def run(self):
         item_embed_vector = []
         for x, y, n in self.mu_list:
-            item_embed_vector.append(np.random.randn(n, 2) + np.array([x, y]))
+            item_embed_vector.append(np.random.normal(loc=(x, y), scale=(1, 1), size=(n, 2)))
         item_embed_vector = np.concatenate(item_embed_vector)
         n_items = item_embed_vector.shape[0]
         item_ids = np.arange(n_items)
@@ -43,8 +43,8 @@ class GetItemDistance(gokart.TaskOnKart):
         item_embed_vector_y = item_embed_vector.rename(columns={'item_id': 'item_id_y', 'item_vector': 'item_vector_y'})
         item_distance_df = cross_join(item_embed_vector_x, item_embed_vector_y)
 
-        def func(item_vector, user_vector):
-            return distance.cosine(item_vector, user_vector)
+        def func(vector1, vector2):
+            return np.linalg.norm(vector1 - vector2)
 
         item_distance_df['distance'] = item_distance_df.apply(lambda x: func(x['item_vector_x'], x['item_vector_y']), axis=1)
         self.dump(item_distance_df[['item_id_x', 'item_id_y', 'distance']])
@@ -56,7 +56,7 @@ class GenerateUserEmbedVectors(gokart.TaskOnKart):
 
     def run(self):
         x, y, n = self.user_list
-        user_embed_vector = np.random.randn(n, 2) + np.array([x, y])
+        user_embed_vector = np.random.normal(loc=(x, y), scale=(3, 3), size=(n, 2))
         user_ids = np.arange(n)
         df = pd.DataFrame(dict(user_id=user_ids, user_vector=list(user_embed_vector)))
         self.dump(df)
@@ -76,7 +76,7 @@ class GenerateUserItemInteractions(gokart.TaskOnKart):
         df = cross_join(item_embed_vector, user_embed_vector)
 
         def func(item_vector, user_vector):
-            prob = expit(distance.cosine(item_vector, user_vector))
+            prob = expit(np.linalg.norm(item_vector - user_vector) / 10) - 0.5
             return np.random.binomial(1, prob, 1)[0]
 
         df['click'] = df.apply(lambda x: func(x['item_vector'], x['user_vector']), axis=1)

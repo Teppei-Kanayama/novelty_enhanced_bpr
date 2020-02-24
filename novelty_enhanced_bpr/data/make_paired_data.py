@@ -18,6 +18,10 @@ class MakePairedData(gokart.TaskOnKart):
         item_distance = self.load()['item_distance']
         clicked_data = clicks[clicks['click'].astype(bool)].rename(columns={'item_id': 'positive_item_id'})
         not_clicked_data = clicks[~clicks['click'].astype(bool)].rename(columns={'item_id': 'negative_item_id'})
+
+        print('clicked_data', clicked_data.shape)
+        print('not_clicked_data', not_clicked_data.shape)
+
         not_clicked_data = not_clicked_data.groupby('user_id').apply(
             lambda x: x.sample(self.positive_sample_weight)).reset_index(drop=True)
 

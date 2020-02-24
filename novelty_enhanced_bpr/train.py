@@ -18,7 +18,7 @@ class TrainModel(gokart.TaskOnKart):
     embedding_dim: int = luigi.IntParameter(default=10)
     lr: float = luigi.FloatParameter(default=0.005)
     weight_decay: float = luigi.FloatParameter(default=0.0001)
-    max_iter: int = luigi.IntParameter(default=100)
+    max_iter: int = luigi.IntParameter(default=1000000)
     n_users: int = luigi.IntParameter()
     n_items: int = luigi.IntParameter()
 
@@ -54,7 +54,7 @@ class TrainModel(gokart.TaskOnKart):
             loss.backward()
             optimizer.step()
 
-            if iterations % 10 == 0:
+            if iterations % 1000 == 0:
                 validation_score = validate(model, validation_data)
                 print(f'train loss: {np.array(training_losses).mean()}, '
                       f'val recall@10: {validation_score["recall"]}, '
