@@ -77,7 +77,7 @@ class GenerateUserItemInteractions(gokart.TaskOnKart):
         df = cross_join(item_embed_vector, user_embed_vector)
 
         def func(item_vector, user_vector):
-            prob = expit(np.linalg.norm(item_vector - user_vector)) - 0.5
+            prob = expit(1 / np.linalg.norm(item_vector - user_vector)) - 0.5
             return np.random.binomial(1, prob, 1)[0]
 
         df['click'] = df.apply(lambda x: func(x['item_vector'], x['user_vector']), axis=1)

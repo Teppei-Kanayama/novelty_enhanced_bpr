@@ -21,12 +21,12 @@ class VisualizePsudoData(gokart.TaskOnKart):
         for i, c in enumerate(['r', 'g', 'b', 'c']):
             self.draw_scatter(item_embed[item_embed['item_type'] == i]['item_vector'].values, c)
         self.draw_scatter(user_embed['user_vector'].values, 'black', size=5)
-        plt.savefig('tmp.png')
+        plt.savefig('resources/scatter.png')
 
         ctr = clicks.groupby('item_type', as_index=False).agg({'click': 'mean'}).rename(columns={'click': 'CTR'})
         plt.figure()
         plt.bar(ctr['item_type'].values, ctr['CTR'].values)
-        plt.savefig('bar.png')
+        plt.savefig('resources/bar.png')
 
         self.dump('this is dummy output')
 
