@@ -13,8 +13,8 @@ from novelty_enhanced_bpr.model.matrix_factorization import MatrixFactorization,
 class TrainModel(gokart.TaskOnKart):
     task_namespace = 'novelty_enhanced_bpr'
 
-    distance_threshold: float = luigi.FloatParameter()
-    novelty_rate: float = luigi.FloatParameter()
+    distance_threshold: float = luigi.FloatParameter(default=None)
+    novelty_rate: float = luigi.FloatParameter(default=0.0)
     embedding_dim: int = luigi.IntParameter()
     lr: float = luigi.FloatParameter()
     weight_decay: float = luigi.FloatParameter()
@@ -58,8 +58,8 @@ class TrainModel(gokart.TaskOnKart):
                 validation_score = validate(model, validation_data)
                 print(f'iteration: {iterations}, '
                       f'train loss: {np.array(training_losses).mean()}, '
-                      f'val recall@10: {validation_score["recall"]}, '
-                      f'val map@10: {validation_score["map"]}')
+                      f'val recall@5: {validation_score["recall"]}, '
+                      f'val map@5: {validation_score["map"]}')
 
             if iterations > self.max_iter:
                 self.dump(model)
@@ -73,5 +73,5 @@ def validate(model, data):
     data['model_score'] = scores.data.numpy()
 
     data['rank'] = data.groupby('user_id')['model_score'].rank(ascending=False)
-    print(data[data['rank'] <= 3].groupby('item_type').agg({'user_id': 'count'}))
-    return dict(recall=recall_at_k(data, k=10), map=map_at_k(data, k=10))
+    print(data[data['rank'] <= 5].groupby('item_type').agg({'user_id': 'nunique'}))
+    return dict(recall=recall_at_k(data, k=5), map=map_at_k(data, k=5))
