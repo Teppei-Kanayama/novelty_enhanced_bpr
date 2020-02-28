@@ -21,9 +21,10 @@ class VisualizePsudoData(gokart.TaskOnKart):
 
         fig = plt.figure()
         ax = fig.add_subplot(1, 1, 1)
+        mapper = {0: 'A', 1: 'B', 2: 'C', 3: 'D'}
         for i, c in enumerate(['r', 'g', 'b', 'c']):
-            self.draw_scatter(ax, item_embed[item_embed['item_type'] == i]['item_vector'].values, c, f'item_type: {i}')
-        self.draw_scatter(ax, user_embed['user_vector'].values, 'black', 'user', alpha=0.07, size=5)
+            self.draw_scatter(ax, item_embed[item_embed['item_type'] == i]['item_vector'].values, c, f'item_type: {mapper[i]}')
+        self.draw_scatter(ax, user_embed['user_vector'].values, 'black', 'user', alpha=0.07, size=3)
         ax.set_xlabel('x')
         ax.set_ylabel('y')
         ax.legend(loc='upper left')
@@ -34,7 +35,7 @@ class VisualizePsudoData(gokart.TaskOnKart):
         average_clicks = clicks.groupby('item_type', as_index=False).agg({'sum_clicks': 'mean'}).rename(columns={'sum_clicks': 'average_clicks'})
 
         plt.figure()
-        plt.bar(average_clicks['item_type'].values, average_clicks['average_clicks'].values, tick_label=[0, 1, 2, 3], align='center')
+        plt.bar(average_clicks['item_type'].values, average_clicks['average_clicks'].values, tick_label=['A', 'B', 'C', 'D'], align='center')
         plt.xlabel("item type")
         plt.ylabel("clicks")
         plt.savefig('resources/bar.png')

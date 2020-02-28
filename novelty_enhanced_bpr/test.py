@@ -53,7 +53,7 @@ class TestModel(gokart.TaskOnKart):
     def _group_by_item_type(data, model_name, k=10):
         agg_data = data[data['rank'] <= k].groupby('item_type', as_index=False).agg({'user_id': 'nunique'})
         plt.figure()
-        plt.bar(agg_data['item_type'].values, agg_data['user_id'].values, tick_label=[0, 1, 2, 3],
+        plt.bar(agg_data['item_type'].values, agg_data['user_id'].values, tick_label=['A', 'B', 'C', 'D'],
                 align='center')
         plt.xlabel("item type")
         plt.ylabel("# of users")
