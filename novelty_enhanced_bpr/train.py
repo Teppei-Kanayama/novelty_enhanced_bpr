@@ -13,6 +13,7 @@ from novelty_enhanced_bpr.model.matrix_factorization import MatrixFactorization,
 class TrainModel(gokart.TaskOnKart):
     task_namespace = 'novelty_enhanced_bpr'
 
+    model_name: str = luigi.Parameter(significant=False)
     distance_threshold: float = luigi.FloatParameter(default=None)
     novelty_rate: float = luigi.FloatParameter(default=0.0)
     embedding_dim: int = luigi.IntParameter()

@@ -34,7 +34,9 @@ class VisualizePsudoData(gokart.TaskOnKart):
         average_clicks = clicks.groupby('item_type', as_index=False).agg({'sum_clicks': 'mean'}).rename(columns={'sum_clicks': 'average_clicks'})
 
         plt.figure()
-        plt.bar(average_clicks['item_type'].values, average_clicks['average_clicks'].values)
+        plt.bar(average_clicks['item_type'].values, average_clicks['average_clicks'].values, tick_label=[0, 1, 2, 3], align='center')
+        plt.xlabel("item type")
+        plt.ylabel("clicks")
         plt.savefig('resources/bar.png')
 
         self.dump('this is dummy output')
