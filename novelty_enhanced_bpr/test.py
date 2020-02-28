@@ -55,8 +55,9 @@ class TestModel(gokart.TaskOnKart):
         plt.figure()
         plt.bar(agg_data['item_type'].values, agg_data['user_id'].values, tick_label=['A', 'B', 'C', 'D'],
                 align='center')
-        plt.xlabel("item type")
-        plt.ylabel("# of users")
+        plt.xlabel("item type", fontsize=16)
+        plt.ylabel("# of users", fontsize=16)
+        plt.tick_params(labelsize=10)
         plt.savefig(f'resources/item_types_{model_name}.png')
 
     @staticmethod
@@ -65,6 +66,7 @@ class TestModel(gokart.TaskOnKart):
         plt.figure()
         plt.bar(agg_data['item_type'].values, agg_data['user_id'].values, tick_label=[1, 2, 3, 4],
                 align='center')
-        plt.xlabel("# of item types")
-        plt.ylabel("# of users")
+        plt.xlabel("# of item types", fontsize=16)
+        plt.ylabel("# of users", fontsize=16)
+        plt.tick_params(labelsize=10)
         plt.savefig(f'resources/users_{model_name}.png')
